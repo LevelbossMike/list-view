@@ -17,6 +17,7 @@
 
   App.PersonController = Ember.ObjectController.extend(Ember.Evented, {
     expanded: false,
+
     expand: function () {
       this.toggleProperty('expanded');
       this.trigger('changeExpand');
@@ -28,13 +29,19 @@
     templateName: 'item',
 
     setupExpandListener: function() {
-      logHeight = (function() { Ember.run.next(this, this.logHeight); }).bind(this);
+      // this should use a different way than bind!
+      logHeight = function() { Ember.run.scheduleOnce('afterRender', this, 'logHeight'); }.bind(this);
       this.get('controller').on('changeExpand', logHeight);
     }.on('didInsertElement'),
+
+    removeExpandListener: function() {
+      this.get('controller').off('changeExpand');
+    }.on('willDestroyElement'),
 
     logHeight: function() {
       console.log(this.$().height());
     }
+
   });
 
   App.ItemsView = Ember.ListView.extend({
