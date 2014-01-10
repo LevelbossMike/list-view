@@ -25,15 +25,17 @@
     </script>
     <script type="text/x-handlebars" data-template-name="people">
       <h2>People</h2>
-      {{#collection Ember.ListView contentBinding="controller" height=300 rowHeight=23 width=500}}
-        <div class="item">
-          {{isActive}}:{{name}}
-          <button {{action toggleActive target="controller"}}> activate</button>
-          {{#if isActive}}
-            <div>expanded</div>
-          {{/if}}
-         </div>
-      {{/collection}}
+      {{collection App.ItemsView contentBinding="controller"}}
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="item">
+      <div class="item">
+        {{expanded}}:{{name}}
+        <button {{action expand target="controller"}}> activate</button>
+        {{#if expanded}}
+          <div>expanded</div>
+        {{/if}}
+       </div>
     </script>
   </body>
 </html>

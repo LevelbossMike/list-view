@@ -15,10 +15,33 @@
     }
   });
 
-  App.PersonController = Ember.ObjectController.extend({
-    isActive: false,
-    toggleActive: function () {
-      this.toggleProperty('isActive');
+  App.PersonController = Ember.ObjectController.extend(Ember.Evented, {
+    expanded: false,
+    expand: function () {
+      this.toggleProperty('expanded');
+      this.trigger('changeExpand');
     }
   });
+
+
+  App.ItemView = Ember.ListItemView.extend({
+    templateName: 'item',
+
+    setupExpandListener: function() {
+      logHeight = (function() { Ember.run.next(this, this.logHeight); }).bind(this);
+      this.get('controller').on('changeExpand', logHeight);
+    }.on('didInsertElement'),
+
+    logHeight: function() {
+      console.log(this.$().height());
+    }
+  });
+
+  App.ItemsView = Ember.ListView.extend({
+    height: 300,
+    width: 500,
+    rowHeight: 43,
+    itemViewClass: App.ItemView
+  }); 
+
 })();
