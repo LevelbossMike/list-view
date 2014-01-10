@@ -28,3 +28,7 @@ h2 {
   float: left;
   margin: 0 50px 0 20px;
 }
+
+.item {
+  background: grey;
+}
