@@ -1,5 +1,9 @@
 (function () {
   App = Ember.Application.create();
+  var get = Ember.get, set = Ember.set,
+  min = Math.min, max = Math.max, floor = Math.floor,
+  ceil = Math.ceil,
+  forEach = Ember.ArrayPolyfills.forEach;
 
   App.PeopleController = Ember.ArrayController.extend({
     itemController: 'person'
@@ -61,9 +65,10 @@
       debugger;
       var expanded = this._parentView.get('expandedIndices');
       var expandedThis = expanded.findBy('index', this.get('contentIndex'));
+      var rowHeight = this._parentView.rowHeight;
 
       if (expandedThis != null) {
-        expandedThis.set('height', this.$().height());
+        expandedThis.set('expandedHeight', this.$().height() - rowHeight );
       }
     }
 
@@ -75,9 +80,12 @@
     width: 500,
     rowHeight: 23,
     itemViewClass: App.ItemView,
-    expandedItems: Em.computed.filterBy('content', 'expanded', true),
+    expandedItems: Ember.computed.filterBy('content', 'expanded', true),
 
-    expandedIndices: Em.arrayComputed('content.@each.expanded', {
+    // don't iterate over the whole array when @each.expanded is changed. Only
+    // use the element that changed its expanded property to change the
+    // expandedIndices array.
+    expandedIndices: Ember.arrayComputed('content.@each.expanded', {
       addedItem: function(array, item, changeMeta, instanceMeta) {
         if (item.get('expanded')) { 
           array.pushObject(Ember.Object.create({ index: changeMeta.index }));
@@ -92,6 +100,37 @@
         }
         return array;
       }
-    })
+    }),
+
+    _startingIndex: function() {
+      var scrollTop, rowHeight, columnCount, calculatedStartingIndex,
+          contentLength, largestStartingIndex;
+
+      contentLength = get(this, 'content.length');
+      scrollTop = get(this, 'scrollTop');
+      rowHeight = get(this, 'rowHeight');
+      columnCount = get(this, 'columnCount');
+
+      // 'best case' scenario. Nothing is expanded and we can take row heights
+      // we have to check if anything above the best case startingIndex is
+      // expanded accummulate those heights and subtract this from scrollTop
+      calculatedStartingIndex = floor(scrollTop / rowHeight) * columnCount;
+
+      var expandedAbove = this.get('expandedIndices')
+        .filter(function(item) { 
+          return (item.index < calculatedStartingIndex); 
+        })
+        .reduce(function(prev, item, index, enumerable) {
+          return prev + item.get('expandedHeight');
+        }, 0);
+
+      var correctedStartingIndex = floor((scrollTop - expandedAbove) / rowHeight) * columnCount;
+
+      debugger;
+
+      largestStartingIndex = max(contentLength - 1, 0);
+
+      return min(correctedStartingIndex, largestStartingIndex);
+    }
   }); 
 })();
