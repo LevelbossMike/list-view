@@ -29,11 +29,6 @@
     templateName: 'item',
 
     setupExpandListener: function() {
-      // we want to make sure the dom has rerendered before checking the views
-      // height after toggling expansion. We could use Ember.run.next but this
-      // is not recommended according to the docs so we are using the afterRender
-      // queue.
-      // propably this should use a different way to bind the context than this.
       this.get('controller').on('changeExpand', this, this.logHeightAfterRender);
     }.on('didInsertElement'),
 
@@ -42,6 +37,7 @@
       this.get('controller').off('changeExpand');
     }.on('willDestroyElement'),
 
+    // gets called when context is updated for the listItemView
     updateContext: function(newContext) {
       // clear expandListener and resetup so we are using the right controllers
       // again
@@ -54,14 +50,19 @@
     },
 
     logHeightAfterRender: function() { 
+      // we want to make sure the dom has rerendered before checking the views
+      // height after toggling expansion. We could use Ember.run.next but this
+      // is not recommended according to the docs so we are using the afterRender
+      // queue.
       Ember.run.scheduleOnce('afterRender', this, 'logHeight'); 
     },
-    // we have to hoock into rerender because we are not creating new views we
-    // are only changing the views contexts.
+
     logHeight: function() {
       var height = this.$().height();
+      var expanded = this._parentView.get('expandedIndices');
+      var expandedThis = expanded.findBy('index', this.get('contentIndex'))
 
-      console.log(height);
+      if (expandedThis != null) { expandedThis.set('height', height); }
     }
 
   });
@@ -77,13 +78,13 @@
     expandedIndices: Em.arrayComputed('content.@each.expanded', {
       addedItem: function(array, item, changeMeta, instanceMeta) {
         if (item.get('expanded')) { 
-          array.pushObject({ index: changeMeta.index });
+          array.pushObject(Ember.Object.create({ index: changeMeta.index }));
         }
       },
 
       removedItem: function(array, item, changeMeta, instanceMeta) {
         if (!item.get('expanded')) { 
-          expandedObject = array.findBy('id', changeMeta.index);
+          expandedObject = array.findBy('index', changeMeta.index);
           array.removeObject(expandedObject); 
         }
       }
