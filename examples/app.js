@@ -126,8 +126,6 @@
 
       var correctedStartingIndex = floor((scrollTop - expandedAbove) / rowHeight) * columnCount;
 
-      debugger;
-
       largestStartingIndex = max(contentLength - 1, 0);
 
       return min(correctedStartingIndex, largestStartingIndex);

@@ -545,7 +545,17 @@ Ember.ListViewMixin = Ember.Mixin.create({
     columnCount = get(this, 'columnCount');
     rowHeight = get(this, 'rowHeight');
 
-    y = (rowHeight * floor(index/columnCount));
+    var expandedAboveIndex = this.get('expandedIndices').filter(function(item) {
+      return item.get('index') < index;
+    }).reduce(function(prev, item, _, enumerable ) {
+      return prev + item.get('expandedHeight');
+    }, 0);
+
+    // rowHeight * floor(index/columnCount) => alle vorangegangenen rowHeights
+    // combined
+    // => alle vorangegangenen rowHeights + reduced expanded
+
+    y = (rowHeight * floor(index/columnCount)) + expandedAboveIndex;
     x = (index % columnCount) * elementWidth;
 
     return {
@@ -760,7 +770,7 @@ Ember.ListViewMixin = Ember.Mixin.create({
     childViews = this.positionOrderedChildViews();
 
     startingIndex = this._startingIndex();
-    endingIndex = startingIndex + childViewCount;
+    //endingIndex = startingIndex + childViewCount; // not needed
 
     numberOfChildViewsNeeded = childViewCount;
     numberOfChildViews = childViews.length;
@@ -810,8 +820,19 @@ Ember.ListViewMixin = Ember.Mixin.create({
 
     startingIndex = this._startingIndex();
     visibleEndingIndex = startingIndex + this._numChildViewsForViewport();
+    // best case scenario
+    var visibleExpanded = this.get('expandedIndices').filter(function(item) {
+      var index = item.get('index');
+      return index >= startingIndex && index <= visibleEndingIndex;
+    }).reduce(function(prev, item, index, enumerable ) {
+      return prev + item.get('expandedHeight');
+    }, 0);
 
-    endingIndex = min(maxContentIndex, visibleEndingIndex);
+    var rowHeight = this.get('rowHeight');
+    // based on the expandedHeights we can't display more childViews
+    var indexesToSubtract = floor(visibleExpanded / rowHeight);
+
+    endingIndex = min(maxContentIndex, visibleEndingIndex - indexesToSubtract);
 
     contentIndexEnd = min(visibleEndingIndex, startingIndex + childViewsLength);
 
