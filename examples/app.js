@@ -58,11 +58,13 @@
     },
 
     logHeight: function() {
-      var height = this.$().height();
+      debugger;
       var expanded = this._parentView.get('expandedIndices');
-      var expandedThis = expanded.findBy('index', this.get('contentIndex'))
+      var expandedThis = expanded.findBy('index', this.get('contentIndex'));
 
-      if (expandedThis != null) { expandedThis.set('height', height); }
+      if (expandedThis != null) {
+        expandedThis.set('height', this.$().height());
+      }
     }
 
   });
@@ -80,6 +82,7 @@
         if (item.get('expanded')) { 
           array.pushObject(Ember.Object.create({ index: changeMeta.index }));
         }
+        return array;
       },
 
       removedItem: function(array, item, changeMeta, instanceMeta) {
@@ -87,6 +90,7 @@
           expandedObject = array.findBy('index', changeMeta.index);
           array.removeObject(expandedObject); 
         }
+        return array;
       }
     })
   }); 
