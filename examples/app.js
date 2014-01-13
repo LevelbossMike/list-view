@@ -50,7 +50,9 @@
       }
 
       this._super(newContext);
-      newContext.on('changeExpand', this, this.logHeightAfterRender);
+      if (newContext != null) {
+        newContext.on('changeExpand', this, this.logHeightAfterRender);
+      }
     },
 
     logHeightAfterRender: function() { 
@@ -62,7 +64,6 @@
     },
 
     logHeight: function() {
-      debugger;
       var expanded = this._parentView.get('expandedIndices');
       var expandedThis = expanded.findBy('index', this.get('contentIndex'));
       var rowHeight = this._parentView.rowHeight;
@@ -70,6 +71,8 @@
       if (expandedThis != null) {
         expandedThis.set('expandedHeight', this.$().height() - rowHeight );
       }
+      this._parentView._syncChildViews();
+
     }
 
   });
